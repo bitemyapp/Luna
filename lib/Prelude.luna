@@ -2,5 +2,33 @@ fibs[0]           := 0
 fibs[1]           := 1
 fibs[n_?IntegerQ] := fibs[n - 1] + fibs[n - 2]
 
-If[True, x_, y_] := x
+Fibonacci[n_] := Divide[RootReduce[Subtract[Power[Divide[Add[1, Sqrt[5], 2]], n], Power[Divide[Subtract[1, Sqrt[5]]), 2], n]]], Sqrt[5]]
+
+If[True, x_, y_]  := x
 If[False, x_, y_] := y
+
+If[True, x_, y_, u_]       := x
+If[False, x_, y_, u_]      := y
+If[condition_, x_, y_, u_] := u
+
+NotSameQ[x_, y_] := Not[SameQ[x, y]]
+
+BooleanQ[True]  := True
+BooleanQ[False] := True
+BooleanQ[x_]    := False
+
+And[True, x_]  := x
+And[x_, True]  := x
+And[False, x_] := False
+And[x_, False] := False
+
+Or[True, x_]  := True
+Or[x_, True]  := True
+Or[False, x_] := x
+Or[x_, False] := x
+
+Not[True]  := False
+Not[False] := True
+
+Implies[True, x_]  := x
+Implies[False, x_] := True

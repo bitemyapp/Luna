@@ -1,12 +1,14 @@
 module Main where
 
+import Luna.Interpreter.Builtin
+import Luna.Interpreter.Environment
+import Luna.Interpreter.Interpreter
+import Luna.Interpreter.Rewrite
 import Luna.Language.Expr
 import Luna.Language.Parser
-import Luna.Language.Rewrite
-import Luna.Language.Interpreter
 
 main :: IO ()
-main = lunaREPL
+main = runLuna lunaREPL
 
 -- Rule
 

@@ -1,11 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Luna.Language.Parser where
 
-import Data.Text
-
 import Control.Monad
-import Control.Applicative hiding ((<|>))
+import Control.Applicative hiding ((<|>), many)
 
 import Text.Parsec
 import Text.Parsec.Expr
@@ -14,7 +10,6 @@ import Text.Parsec.Language
 import Text.Parsec.String
 
 import Luna.Language.Expr
-import Luna.Language.Rewrite
 
 {--------------------------------------------------------------------
     Parser
@@ -42,30 +37,23 @@ lunaLangDef = emptyDef {
         caseSensitive   = True
     }
 
-lunaParens = parens lunaLang
-lunaBrackets = brackets lunaLang
-lunaComma = comma lunaLang
-lunaReservedOp = reservedOp lunaLang
-lunaIdentifier = identifier lunaLang
-lunaInteger = integer lunaLang
-
 {--------------------------------------------------------------------
     Expressions
 --------------------------------------------------------------------}
 
-expr :: Parser Expression
-expr = try (lunaParens expr) <|> try exprApply <|> exprLiteral
+expr = parens lunaLang expr <|> exprList <|> exprInteger <|> exprChar <|> exprString <|> try exprApply <|> exprVar
 
-exprApply :: Parser Expression
-exprApply = EApply <$> lunaIdentifier <*> lunaBrackets (expr `sepBy` lunaComma)
+exprList = EList <$> braces lunaLang (commaSep lunaLang expr)
+exprApply = EApply <$> exprVar <*> brackets lunaLang (commaSep lunaLang expr)     -- TODO: allow expressions like Fibs[][]
+exprInteger = EInteger <$> integer lunaLang
+exprChar = EChar <$> charLiteral lunaLang
+exprString = (EList . fmap EChar) <$> stringLiteral lunaLang
+exprVar = EVar <$> identifier lunaLang <*> rewritePat
 
-exprLiteral :: Parser Expression
-exprLiteral = liftM ELit (try (LInteger <$> lunaInteger) <|>
-                          try (LBool <$> (True <$ string "True" <|> False <$ string "False")) <|>
-                          try (LVar <$> lunaIdentifier <*> rewritePat))
+rewritePat = optionMaybe (try satisfiesPat <|> try anythingPat)
+satisfiesPat = string "_?" >> (Satisfies <$> identifier lunaLang)
+anythingPat = char '_' >> return Anything
 
-rewritePat :: Parser (Maybe RewritePattern)
-rewritePat = try satisfies <|> try anything <|> return Nothing
-  where
-      anything = char '_' >> return (Just Anything)
-      satisfies = char '_' >> char '?' >> liftM Just (Satisfies <$> lunaIdentifier)
+{--------------------------------------------------------------------
+    Statements
+--------------------------------------------------------------------}
