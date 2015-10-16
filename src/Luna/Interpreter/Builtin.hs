@@ -3,7 +3,7 @@ module Luna.Interpreter.Builtin where
 import Data.Maybe
 import qualified Data.Map as M
 
-import Luna.Language.Expr
+import Luna.Language.Definition
 
 {--------------------------------------------------------------------
     Simplification
@@ -26,6 +26,7 @@ evaluate e = untilEqual (iterate doEval e)
         builtIns = M.fromList [("Add", lunaAdd),
             ("Subtract", lunaSubtract),
             ("Multiply", lunaMultiply),
+            ("Negate", lunaNegate),
             ("IntegerQ", lunaIntegerQ),
             ("SameQ", lunaSameQ)]
 
@@ -44,6 +45,10 @@ lunaSubtract _ = Nothing
 lunaMultiply :: [Expression] -> Maybe Expression
 lunaMultiply [EInteger a, EInteger b] = return (EInteger (a * b))
 lunaMultiply _ = Nothing
+
+lunaNegate :: [Expression] -> Maybe Expression
+lunaNegate [EInteger a] = return (EInteger (-a))
+lunaNegate _ = Nothing
 
 lunaIntegerQ :: [Expression] -> Maybe Expression
 lunaIntegerQ [EInteger _] = return (varE "True")

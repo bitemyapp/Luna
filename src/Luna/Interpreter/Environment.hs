@@ -1,8 +1,11 @@
 module Luna.Interpreter.Environment where
 
+import Data.Maybe
+
 import Control.Monad.State
 
-import Luna.Language.Expr
+import Luna.Language.Definition
+import Luna.Language.Parser
 
 {--------------------------------------------------------------------
     Environment
@@ -11,7 +14,16 @@ import Luna.Language.Expr
 type Luna = StateT Environment IO
 
 runLuna :: Luna a -> IO a
-runLuna luna = evalStateT luna initEnv
+runLuna luna = do
+    -- Read in the prelude file
+    prelude <- readFile "C:/Users/Matthew/Desktop/Luna/lib/Prelude.luna"
+    case parseLunaFile "C:/Users/Matthew/Desktop/Luna/lib/Prelude.luna" prelude of
+        Left e -> error $ show e
+        Right prelude -> do
+            -- Extract the rules
+            let initRules = mapMaybe stmtRules prelude
+            -- Run using the initial environment
+            evalStateT luna (Environment initRules)
 
 data Environment
     = Environment {
@@ -20,7 +32,5 @@ data Environment
 
 initEnv :: Environment
 initEnv = Environment {
-        envRules = [(apply1E "fibs" 0, 0),
-                    (apply1E "fibs" 1, 1),
-                    (apply1E "fibs" (EVar "n" (Just (Satisfies "IntegerQ"))), apply1E "fibs" (varE "n" - 1) + apply1E "fibs" (varE "n" - 2))]
+        envRules = []
     }

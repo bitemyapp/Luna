@@ -14,7 +14,7 @@ import Control.Arrow
 
 import Luna.Interpreter.Builtin
 import Luna.Interpreter.Environment
-import Luna.Language.Expr
+import Luna.Language.Definition
 
 {--------------------------------------------------------------------
     Evaluation
@@ -51,6 +51,7 @@ rewriteScore rule =
         EList xs -> 1 + sum (fmap rewriteScore xs)
         EVar _ (Just Anything) -> 0
         EVar _ (Just (Satisfies _)) -> 1
+        EVar _ Nothing -> 10
         EApply _ fx -> 1 + sum (fmap rewriteScore fx)
 
 {--------------------------------------------------------------------

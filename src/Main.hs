@@ -4,7 +4,7 @@ import Luna.Interpreter.Builtin
 import Luna.Interpreter.Environment
 import Luna.Interpreter.Interpreter
 import Luna.Interpreter.Rewrite
-import Luna.Language.Expr
+import Luna.Language.Definition
 import Luna.Language.Parser
 
 main :: IO ()

@@ -1,8 +1,37 @@
+----------------------------------------------------
+-- Example of a simple program: the fibonacci sequence
+----------------------------------------------------
+
 fibs[0]           := 0
 fibs[1]           := 1
 fibs[n_?IntegerQ] := fibs[n - 1] + fibs[n - 2]
 
-Fibonacci[n_] := Divide[RootReduce[Subtract[Power[Divide[Add[1, Sqrt[5], 2]], n], Power[Divide[Subtract[1, Sqrt[5]]), 2], n]]], Sqrt[5]]
+----------------------------------------------------
+-- Predicates
+----------------------------------------------------
+
+BooleanQ[True]  := True
+BooleanQ[False] := True
+BooleanQ[x_]    := False
+
+NotSameQ[x_, y_] := Not[SameQ[x, y]]
+
+----------------------------------------------------
+-- Mathematical operations
+----------------------------------------------------
+
+-- We define negation, subtraction, and division in terms of other operators
+-- to keep things simple
+Negate[x_] := -1 * x
+x_ - y_ := x + -1 * y
+x_ / y_ := x * y ^ -1
+
+-- Some rules to help keep the maths simple
+x_ + x_ := 2 * x
+
+----------------------------------------------------
+-- Logic operations
+----------------------------------------------------
 
 If[True, x_, y_]  := x
 If[False, x_, y_] := y
@@ -10,12 +39,6 @@ If[False, x_, y_] := y
 If[True, x_, y_, u_]       := x
 If[False, x_, y_, u_]      := y
 If[condition_, x_, y_, u_] := u
-
-NotSameQ[x_, y_] := Not[SameQ[x, y]]
-
-BooleanQ[True]  := True
-BooleanQ[False] := True
-BooleanQ[x_]    := False
 
 And[True, x_]  := x
 And[x_, True]  := x

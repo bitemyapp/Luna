@@ -1,4 +1,4 @@
-module Luna.Language.Expr where
+module Luna.Language.Definition where
 
 import Data.String
 import Data.Ratio
@@ -100,3 +100,24 @@ instance Eq RewritePattern where
     Anything == Anything       = True
     Satisfies x == Satisfies y = x == y
     _ == _ = False
+
+{--------------------------------------------------------------------
+    Statements
+--------------------------------------------------------------------}
+
+data Statement
+    = SExpr Expression
+    | SRule Expression Expression
+
+instance Show Statement where
+    show (SExpr x) = show x
+    show (SRule x y) = show x ++ " := " ++ show y
+
+instance Eq Statement where
+    SExpr a == SExpr b = a == b
+    SRule f x == SRule g y = f == g && x == y
+    _ == _ = False
+
+stmtRules :: Statement -> Maybe (Expression, Expression)
+stmtRules (SRule pat result) = Just (pat, result)
+stmtRules _ = Nothing
