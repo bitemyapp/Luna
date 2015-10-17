@@ -1,5 +1,7 @@
 module Luna.Interpreter.Interpreter where
 
+import System.IO
+
 import Control.Monad.State
 
 import Luna.Interpreter.Rewrite
@@ -36,7 +38,7 @@ lunaREPL = do
     lunaREPL
 
 lunaPrint :: String -> Luna ()
-lunaPrint = liftIO . putStr
+lunaPrint s = liftIO (putStr s >> hFlush stdout)
 
 lunaRead :: Luna String
 lunaRead = liftIO getLine

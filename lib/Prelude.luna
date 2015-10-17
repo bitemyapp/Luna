@@ -23,11 +23,25 @@ NotSameQ[x_, y_] := Not[SameQ[x, y]]
 -- We define negation, subtraction, and division in terms of other operators
 -- to keep things simple
 Negate[x_] := -1 * x
-x_ - y_ := x + -1 * y
-x_ / y_ := x * y ^ -1
+Subtract[x_, y_] := x + -1 * y
+Divide[x_, y_] := x * y ^ -1
 
--- Some rules to help keep the maths simple
-x_ + x_ := 2 * x
+-- Simplification
+-- Addition
+Simplify[0 + x_] := x
+Simplify[x_ + 0] := x
+Simplify[x_ + x_] := 2 * x
+Simplify[(y_ * x_) + x_] := (y + 1) * x
+Simplify[(x_ * y_) + x_] := (y + 1) * x
+Simplify[x_ + (y_ * x_)] := (y + 1) * x
+Simplify[x_ + (x_ * y_)] := (y + 1) * x
+
+-- Multiplication
+Simplify[x_ * 0] := 0
+Simplify[0 * x_] := 0
+
+-- Spit out what we cant simplify
+Simplify[x_] := x
 
 ----------------------------------------------------
 -- Logic operations
