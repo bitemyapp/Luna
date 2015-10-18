@@ -14,17 +14,30 @@ BooleanQ[True]  := True
 BooleanQ[False] := True
 BooleanQ[x_]    := False
 
+SameQ[x_, x_] := True
+SameQ[x_, y_] := False
+
 NotSameQ[x_, y_] := Not[SameQ[x, y]]
 
 ----------------------------------------------------
 -- Mathematical operations
 ----------------------------------------------------
 
+Equal[x_, x_] := True
+
+LessThan[x_, x_] := False
+GreaterThan[x_, x_] := False
+
+LessEqualThan[x_, y_] := LessThan[x, y] \/ Equal[x, y]
+GreaterEqualThan[x_, y_] := GreaterThan[x, y] \/ Equal[x, y]
+
 -- We define negation, subtraction, and division in terms of other operators
 -- to keep things simple
 Negate[x_] := -1 * x
 Subtract[x_, y_] := x + -1 * y
 Divide[x_, y_] := x * y ^ -1
+
+Sqrt[x_] := x ^ (1/2)
 
 -- Simplification
 -- Addition
@@ -69,3 +82,22 @@ Not[False] := True
 
 Implies[True, x_]  := x
 Implies[False, x_] := True
+
+----------------------------------------------------
+-- List operations
+----------------------------------------------------
+
+-- TODO: need a way of selecting multiple values in a pattern.
+
+-- Prepend[{xs_}, x_] := {x, xs}
+
+-- Append[{xs_}, x_] := {xs, x}
+
+Range[max_] := Range[1, max, 1]
+Range[min_, max_] := Range[min, max, 1]
+Range[min_, max_, step_] := Prepend[If[min < max, Range[min + step, max, step], {}], min]
+
+-- TODO: these require more advance predicate rules
+Select[{}, predicate_] := {}
+Select[{x_, xs_}, predicate_] := Append[If[IntegerQ[x], x, {}, {}], Select[xs, predicate]]
+-- Select[{x_, xs_}, predicate_] := Append[If[predicate[x], x, {}, {}], Select[xs, predicate]]

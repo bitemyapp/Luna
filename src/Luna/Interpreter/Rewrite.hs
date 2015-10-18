@@ -58,11 +58,32 @@ rewriteScore rule =
     Rewriting
 --------------------------------------------------------------------}
 
-satisfiesPattern :: Expression -> RewritePattern -> Luna Bool
-satisfiesPattern e Anything = return True
-satisfiesPattern e (Satisfies f) = do
-    evalResult <- eval (EApply (EVar f Nothing) [e])
-    return (varE "True" == evalResult)
+{-
+type Replace = StateT ReplacementMap Luna
+type ReplacementMap = M.Map Identifier [Expression]
+type ReplacementRule = Expression
+
+replace :: ReplacementRule -> Expression -> Luna [Expression]
+replace rule expr = do
+    -- Get all possible replacements
+    (success, replacements) <- runStateT (replacePattern rule expr) M.empty
+    -- Perform every possible replacement
+    return $ if success
+        then replaceApply expr replacements
+        else []
+
+replacePattern :: ReplacementRule -> Expression -> Replace Bool
+replacePattern rule expr =
+    case (rule, expr) of
+        (EApply f xs, EApply g ys) ->
+            if f == g
+                then rewriteLoop (zip xs ys)
+                else return False
+        _ -> error "Unimplemented replace pattern"
+
+replaceApply :: Expression -> ReplacementMap -> [Expression]
+replaceApply expr replacements = undefined
+-}
 
 rewrite :: Expression -> Expression -> Expression -> Luna (Maybe Expression)
 rewrite a b e = do
@@ -91,7 +112,27 @@ rewrite a b e = do
                             if f == g
                                 then rewriteLoop (zip xs ys) curr
                                 else return Nothing
+                        (EList pats, EList vals) ->
+                            rewriteList pats vals curr
                         (x, y) -> rewriteIfEqual x y curr
+                rewriteList :: [Expression] -> [Expression] -> M.Map Identifier Expression -> Luna (Maybe (M.Map Identifier Expression))
+                rewriteList [] [] curr = return (Just curr)
+                rewriteList (EVar a m:pats) (x:xs) curr =
+                    case m of
+                        Nothing -> undefined
+                        Just mPat -> do
+                            patternOk <- x `satisfiesPattern` mPat
+                            if patternOk
+                                then case M.lookup a curr of
+                                    Just aVal -> do
+                                        rewritten <- rewriteIfEqual aVal x curr
+                                        case rewritten of
+                                            Nothing -> return Nothing
+                                            Just newCurr -> rewriteList pats xs newCurr
+                                    Nothing ->
+                                        rewriteList pats xs (M.insert a x curr)
+                                else return Nothing
+                rewriteList _ _ _ = return Nothing
                 rewriteLoop :: [(Expression, Expression)] -> M.Map Identifier Expression -> Luna (Maybe (M.Map Identifier Expression))
                 rewriteLoop [] curr = return (Just curr)
                 rewriteLoop ((rExpr, mExpr):xs) curr = do
@@ -103,6 +144,11 @@ rewrite a b e = do
                 rewriteIfEqual a b curr
                     | a == b = return (Just curr)
                     | otherwise = return Nothing
+        satisfiesPattern :: Expression -> RewritePattern -> Luna Bool
+        satisfiesPattern e Anything = return True
+        satisfiesPattern e (Satisfies f) = do
+            evalResult <- eval (EApply (EVar f Nothing) [e])
+            return (varE "True" == evalResult)
         applyRewrite :: Expression -> M.Map Identifier Expression -> Expression
         applyRewrite rResult rVals =
             case rResult of

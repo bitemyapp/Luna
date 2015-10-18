@@ -35,7 +35,8 @@ lunaLangDef = emptyDef {
         identLetter	    = alphaNum,
         opStart	        = opLetter lunaLangDef,
         opLetter	    = oneOf "-+^*/:=_?",
-        reservedOpNames = ["-", "+", "^", "*", "/",
+        reservedOpNames = ["-", "+", "^", "*", "/", "<", ">", "<=", ">=", "==", "/=", "===", "=/=",
+                           "/\\", "\\/",
                            ":=", "_?", "_"],
         reservedNames   = [],
         caseSensitive   = True
@@ -48,12 +49,18 @@ lunaLangDef = emptyDef {
 expr = buildExpressionParser exprTable exprTerm
     where
         exprTable = [[prefix "-" negate, prefix "+" id],
-                     [binary "^" (**) AssocLeft],
+                     [binary "^" (**) AssocRight],
                      [binary "*" (*) AssocLeft, binary "/" (/) AssocLeft],
-                     [binary "+" (+) AssocLeft, binary "-" (-) AssocLeft]]
-        binary name fun = Infix (do { reservedOp lunaLang name; return fun })
-        prefix name fun = Prefix (do { reservedOp lunaLang name; return fun })
-        postfix name fun = Postfix (do { reservedOp lunaLang name; return fun })
+                     [binary "+" (+) AssocLeft, binary "-" (-) AssocLeft],
+                     [binary "<" (apply2E "LessThan") AssocLeft, binary "<=" (apply2E "LessEqualThan") AssocLeft,
+                      binary ">" (apply2E "GreaterThan") AssocLeft, binary ">=" (apply2E "GreaterEqualThan") AssocLeft],
+                     [binary "==" (apply2E "Equal") AssocLeft, binary "/=" (apply2E "NotEqual") AssocLeft,
+                      binary "===" (apply2E "SameQ") AssocLeft, binary "=/=" (apply2E "NotSameQ") AssocLeft],
+                     [binary "/\\" (apply2E "And") AssocLeft],
+                     [binary "\\/" (apply2E "Or") AssocLeft]]
+        binary name fun = Infix (reservedOp lunaLang name >> return fun)
+        prefix name fun = Prefix (reservedOp lunaLang name >> return fun)
+        postfix name fun = Postfix (reservedOp lunaLang name >> return fun)
 
 exprTerm = parens lunaLang expr <|> exprList <|> exprInteger <|> exprChar <|> exprString <|> try exprApply <|> exprVar
 

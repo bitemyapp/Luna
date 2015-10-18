@@ -16,8 +16,8 @@ type Luna = StateT Environment IO
 runLuna :: Luna a -> IO a
 runLuna luna = do
     -- Read in the prelude file
-    prelude <- readFile "Prelude.luna"
-    case parseLunaFile "Prelude.luna" prelude of
+    prelude <- readFile "../lib/Prelude.luna"
+    case parseLunaFile "../lib/Prelude.luna" prelude of
         Left e -> error $ show e
         Right prelude -> do
             -- Extract the rules

@@ -23,38 +23,45 @@ evaluate e = untilEqual (iterate doEval e)
                 EApply x xs ->
                     EApply x (fmap evaluate xs)
                 other -> other
-        builtIns = M.fromList [("Add", lunaAdd),
-            ("Subtract", lunaSubtract),
-            ("Multiply", lunaMultiply),
-            ("Negate", lunaNegate),
-            ("IntegerQ", lunaIntegerQ),
-            ("SameQ", lunaSameQ)]
+        builtIns = M.fromList (fmap lunaBuiltin [lunaAdd, lunaSubtract, lunaMultiply, lunaNegate, lunaIntegerQ])
 
 {--------------------------------------------------------------------
     Built-ins
 --------------------------------------------------------------------}
 
-lunaAdd :: [Expression] -> Maybe Expression
-lunaAdd [EInteger a, EInteger b] = return (EInteger (a + b))
-lunaAdd _ = Nothing
+data LunaBuiltin
+    = LunaBuiltin Identifier ([Expression] -> Maybe Expression)
 
-lunaSubtract :: [Expression] -> Maybe Expression
-lunaSubtract [EInteger a, EInteger b] = return (EInteger (a - b))
-lunaSubtract _ = Nothing
+lunaBuiltin :: LunaBuiltin -> (Identifier, [Expression] -> Maybe Expression)
+lunaBuiltin (LunaBuiltin f fx) = (f, fx)
 
-lunaMultiply :: [Expression] -> Maybe Expression
-lunaMultiply [EInteger a, EInteger b] = return (EInteger (a * b))
-lunaMultiply _ = Nothing
+lunaAdd :: LunaBuiltin
+lunaAdd = LunaBuiltin "Add" f
+    where
+        f [EInteger a, EInteger b] = return (EInteger (a + b))
+        f _ = Nothing
 
-lunaNegate :: [Expression] -> Maybe Expression
-lunaNegate [EInteger a] = return (EInteger (-a))
-lunaNegate _ = Nothing
+lunaSubtract :: LunaBuiltin
+lunaSubtract = LunaBuiltin "Subtract" f
+    where
+        f [EInteger a, EInteger b] = return (EInteger (a - b))
+        f _ = Nothing
 
-lunaIntegerQ :: [Expression] -> Maybe Expression
-lunaIntegerQ [EInteger _] = return (varE "True")
-lunaIntegerQ [_] = return (varE "False")
-lunaIntegerQ _ = Nothing
+lunaMultiply :: LunaBuiltin
+lunaMultiply = LunaBuiltin "Multiply" f
+    where
+        f [EInteger a, EInteger b] = return (EInteger (a * b))
+        f _ = Nothing
 
-lunaSameQ :: [Expression] -> Maybe Expression
-lunaSameQ [x, y] = return (varE (show (x == y)))
-lunaSameQ _ = Nothing
+lunaNegate :: LunaBuiltin
+lunaNegate = LunaBuiltin "Negate" f
+    where
+        f [EInteger a] = return (EInteger (-a))
+        f _ = Nothing
+
+lunaIntegerQ :: LunaBuiltin
+lunaIntegerQ = LunaBuiltin "IntegerQ" f
+    where
+        f [EInteger _] = return (varE "True")
+        f [_] = return (varE "False")
+        f _ = Nothing
